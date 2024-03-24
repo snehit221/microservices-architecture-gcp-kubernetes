@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: service2-service
+spec:
+  selector:
+    app: service2   # Label selector matching Service 2's Pods
+  ports:
+    - protocol: TCP
+      port: 3000     # Port where Service 2 is listening
+      targetPort: 3000  # Port on Service 2's Pods
+

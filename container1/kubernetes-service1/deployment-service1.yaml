@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service1-deployment
+spec:
+  replicas: 1  # Number of replicas 
+  selector:
+    matchLabels:
+      app: service1
+  template:
+    metadata:
+      labels:
+        app: service1
+    spec:
+      containers:
+      - name: service1-container
+        image: us-central1-docker.pkg.dev/gke-a3/communicating-microservices/container1:$SHORT_SHA
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 6000
+        volumeMounts:
+        - name: service1-storage
+          mountPath: /snehit_PV_dir  # Mount path within the container
+      volumes:
+      - name: service1-storage
+        persistentVolumeClaim:
+          claimName: shared-pvc  # Name of the PersistentVolumeClaim

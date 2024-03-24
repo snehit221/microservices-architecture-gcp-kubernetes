@@ -1,0 +1,34 @@
+steps:
+  # Step to build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/communicating-microservices/container1:$SHORT_SHA', '.']
+  
+  # Step to push the Docker image to Artifact Registry 
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/communicating-microservices/container1:$SHORT_SHA']
+  
+  # Step to update the deployment YAML with the new image tag
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Replace image tag in deployment YAML with $SHORT_SHA
+        sed -i "s|image: us-central1-docker.pkg.dev/\$PROJECT_ID/communicating-microservices/container1:.*|image: us-central1-docker.pkg.dev/\$PROJECT_ID/communicating-microservices/container1:$SHORT_SHA|g" kubernetes-service1/deployment-service1.yaml
+
+  # Step to apply the PVC
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: ['apply', '-f', 'kubernetes-service1/pvc.yaml']
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-c'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=microservices-gke-cluster'
+
+  # Run the deployment and service
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: ['apply', '-f', 'kubernetes-service1/']
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-c'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=microservices-gke-cluster'    
+
+options:
+  logging: CLOUD_LOGGING_ONLY
